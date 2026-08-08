@@ -3,6 +3,21 @@
 
 A modern, GUI-based tool designed to simplify the installation and management of add-ons for Minecraft Bedrock Dedicated Servers (BDS). Stop manually extracting `.mcaddon` files, digging through folders, and hand-editing JSON files. Just drag, drop, and play.
 
+<table>
+  <tr>
+    <td align="center">
+      <a href="Screenshots/2026-08-04_200835.png">
+        <img src="Screenshots/2026-08-04_200835.png" alt="Minecraft Bedrock Manager Screenshot 1" width="100%" />
+      </a>
+    </td>
+    <td align="center">
+      <a href="Screenshots/2026-08-01_154250.png">
+        <img src="Screenshots/2026-08-01_154250.png" alt="Minecraft Bedrock Manager Screenshot 2" width="100%" />
+      </a>
+    </td>
+  </tr>
+</table>
+
 ## 📖 Table of Contents
 - [Why does this exist?](#-why-does-this-exist)
 - [Who should use this?](#-who-should-use-this)
