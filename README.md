@@ -6,8 +6,8 @@ A modern, GUI-based tool designed to simplify the installation and management of
 <table>
   <tr>
     <td align="center">
-      <a href="Screenshots/2026-08-04_200835.png">
-        <img src="Screenshots/2026-08-04_200835.png" alt="Minecraft Bedrock Manager Screenshot 1" width="100%" />
+      <a href="Screenshots/2026-08-08_133742.png">
+        <img src="Screenshots/2026-08-08_133742.png" alt="Minecraft Bedrock Manager Screenshot 1" width="100%" />
       </a>
     </td>
     <td align="center">
