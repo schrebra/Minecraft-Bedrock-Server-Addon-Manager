@@ -11,8 +11,8 @@ A modern, GUI-based tool designed to simplify the installation and management of
       </a>
     </td>
     <td align="center">
-      <a href="Screenshots/2026-08-01_154250.png">
-        <img src="Screenshots/2026-08-01_154250.png" alt="Minecraft Bedrock Manager Screenshot 2" width="100%" />
+      <a href="Screenshots/2026-08-08_133818.png">
+        <img src="Screenshots/2026-08-08_133818.png" alt="Minecraft Bedrock Manager Screenshot 2" width="100%" />
       </a>
     </td>
   </tr>
