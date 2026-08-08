@@ -1,6 +1,6 @@
-﻿<#
+<#
 .SYNOPSIS
-    Bootstraps a modern, split-view GUI-based Bedrock Dedicated Server Addon Manager C# project, builds it, and runs it.
+    Bootstraps the Bedrock Dedicated Server Addon Manager C# project, builds it as a self-contained single-file executable, and runs it.
 #>
 
 [CmdletBinding()]
@@ -32,6 +32,7 @@ function Write-ProjectFile {
 try {
     Write-Host "=============================================================" -ForegroundColor Cyan
     Write-Host " Bedrock Dedicated Server Addon Manager - Bootstrapper" -ForegroundColor Cyan
+    Write-Host " (Self-Contained Single-File Executable)" -ForegroundColor Cyan
     Write-Host "=============================================================" -ForegroundColor Cyan
     
     # ─── 1. Create Project Directory ────────────────────────────────────────
@@ -44,7 +45,7 @@ try {
     # ─── 2. Generate Files ──────────────────────────────────────────────────
     Write-Host "`n[2/4] Generating project files..." -ForegroundColor Yellow
 
-    # BedrockDedicatedServerAddonManager.csproj
+    # BedrockDedicatedServerAddonManager.csproj (Configured for Single File, Self-Contained)
     $csproj = @'
 <Project Sdk="Microsoft.NET.Sdk">
 
@@ -56,6 +57,13 @@ try {
     <Nullable>enable</Nullable>
     <AssemblyName>BedrockDedicatedServerAddonManager</AssemblyName>
     <RootNamespace>BedrockDedicatedServerAddonManager</RootNamespace>
+    
+    <!-- Single File & Self-Contained Properties -->
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
   </PropertyGroup>
 
 </Project>
@@ -1115,7 +1123,7 @@ public static class ConsoleExt
 '@
     Write-ProjectFile "ConsoleExt.cs" $consoleExtCs
 
-    # AddonExtractor.cs (Fixed Long Path Slash Syntax)
+    # AddonExtractor.cs 
     $addonExtractorCs = @'
 using System.IO.Compression;
 
@@ -1315,7 +1323,7 @@ public static class PackTypeDetector
 '@
     Write-ProjectFile "ManifestParser.cs" $manifestParserCs
 
-    # PackInstaller.cs (Long Path Support for Copy/Move)
+    # PackInstaller.cs 
     $packInstallerCs = @'
 using System.Text;
 using System.Text.Json;
@@ -1430,6 +1438,33 @@ public class PackInstaller
         {
             CopyDirectory(pack.SourcePath, longTargetPath);
             ConsoleExt.Ok("  Files copied successfully.");
+
+            // Rewrite manifest.json to strip Minecraft formatting codes (e.g., §7, §b) 
+            // so the Bedrock server console doesn't display alien characters.
+            try
+            {
+                var manifestPath = Path.Combine(longTargetPath, "manifest.json");
+                if (File.Exists(manifestPath))
+                {
+                    var jsonOpts = new JsonSerializerOptions 
+                    { 
+                        PropertyNameCaseInsensitive = true, 
+                        WriteIndented = true 
+                    };
+                    var manifestJson = File.ReadAllText(manifestPath);
+                    var manifest = JsonSerializer.Deserialize<PackManifest>(manifestJson, jsonOpts);
+                    if (manifest != null && manifest.Header != null)
+                    {
+                        manifest.Header.Name = pack.Name; // pack.Name is already stripped of § codes
+                        var cleanJson = JsonSerializer.Serialize(manifest, jsonOpts);
+                        File.WriteAllText(manifestPath, cleanJson, Utf8NoBom);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ConsoleExt.Warn($"  Failed to clean manifest.json: {ex.Message}");
+            }
         }
         catch (Exception ex)
         {
@@ -1780,26 +1815,27 @@ public static class WorldPackRegistry
 '@
     Write-ProjectFile "WorldPackRegistry.cs" $worldPackRegistryCs
 
-    # ─── 3. Build Project ───────────────────────────────────────────────────
-    Write-Host "`n[3/4] Building project with dotnet..." -ForegroundColor Yellow
+    # ─── 3. Publish Project (Self-Contained Single File) ────────────────────
+    Write-Host "`n[3/4] Publishing self-contained executable with dotnet..." -ForegroundColor Yellow
     
     Push-Location $ProjectDir
     try {
         dotnet restore --nologo --verbosity quiet
         if ($LASTEXITCODE -ne 0) { throw "dotnet restore failed." }
         
-        dotnet build -c Release --nologo --verbosity quiet
-        if ($LASTEXITCODE -ne 0) { throw "dotnet build failed." }
+        # Publish as a single file, self-contained, without requiring .NET runtime to be installed on the target machine
+        dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true --nologo --verbosity quiet
+        if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed." }
     }
     finally {
         Pop-Location
     }
-    Write-Host "      Build successful!" -ForegroundColor Green
+    Write-Host "      Publish successful!" -ForegroundColor Green
 
     # ─── 4. Run Executable ──────────────────────────────────────────────────
-    Write-Host "`n[4/4] Launching Bedrock Dedicated Server Addon Manager GUI..." -ForegroundColor Yellow
+    Write-Host "`n[4/4] Launching Bedrock Dedicated Server Addon Manager..." -ForegroundColor Yellow
     
-    $exePath = Join-Path $ProjectDir "bin\Release\net8.0-windows\BedrockDedicatedServerAddonManager.exe"
+    $exePath = Join-Path $ProjectDir "bin\Release\net8.0-windows\win-x64\publish\BedrockDedicatedServerAddonManager.exe"
     if (-not (Test-Path $exePath)) {
         throw "Executable not found at $exePath"
     }
